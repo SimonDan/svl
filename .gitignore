@@ -4,8 +4,12 @@
 # Log file
 *.log
 
-.idea
+.idea/*
+!.idea/codeStyles
+!.idea/vcs.xml
+*.iml
 .gradle
+build/
 
 # Package Files #
 *.jar
@@ -15,4 +19,3 @@
 *.zip
 *.tar.gz
 *.rar
-
