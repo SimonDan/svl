@@ -2,7 +2,6 @@ plugins {
     id 'java'
 }
 
-
 sourceCompatibility = 1.11
 
 repositories {

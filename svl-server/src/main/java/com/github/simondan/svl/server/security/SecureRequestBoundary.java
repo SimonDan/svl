@@ -1,17 +1,14 @@
 package com.github.simondan.svl.server.security;
 
-import com.auth0.jwt.*;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.sun.jersey.core.util.Priority;
 
+import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.ext.Provider;
 import java.security.Principal;
-import java.util.Objects;
 
 /**
  * @author Simon Danner, 20.09.2019
@@ -19,26 +16,21 @@ import java.util.Objects;
 @SecureBoundary
 @Provider
 @Priority(Priorities.AUTHENTICATION)
-public final class SecureRequestBoundary implements ContainerRequestFilter
+public class SecureRequestBoundary implements ContainerRequestFilter
 {
   private static final int TOKEN_PREFIX_LENGTH = "Bearer".length();
-  private static final Algorithm ALGORITHM = Algorithm.HMAC256("TODO");
-  private static final JWTVerifier VERIFIER = JWT.require(ALGORITHM)
-      .withIssuer("auth0")
-      .build();
 
   @Override
   public void filter(ContainerRequestContext pRequestContext)
   {
-    final String token = _retrieveTokenFromHeader(pRequestContext);
-
     try
     {
-      final DecodedJWT decoded = VERIFIER.verify(token);
-      final String user = decoded.getSubject();
-      final String role = decoded.getId(); //TODO
+      final String token = _retrieveTokenFromHeader(pRequestContext);
+      final DecodedJWT decoded = JWTUtil.decodeJwt(token);
+      final int userId = decoded.getClaim(JWTUtil.USER_ID_CLAIM).asInt();
+      final ERole role = _userRoleFromString(decoded.getClaim(JWTUtil.USER_ROLE_CLAIM).asString());
 
-      pRequestContext.setSecurityContext(new _UserContext(user, role));
+      pRequestContext.setSecurityContext(new _UserContext(userId, role));
     }
     catch (JWTVerificationException pE)
     {
@@ -46,27 +38,43 @@ public final class SecureRequestBoundary implements ContainerRequestFilter
     }
   }
 
-  private static String _retrieveTokenFromHeader(ContainerRequestContext pRequestContext)
+  private static String _retrieveTokenFromHeader(ContainerRequestContext pRequestContext) throws JWTVerificationException
   {
     final String authHeader = pRequestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+    if (authHeader == null)
+      throw new JWTVerificationException("No authorization token in header!");
+
     return authHeader.substring(TOKEN_PREFIX_LENGTH).trim();
+  }
+
+  private static ERole _userRoleFromString(String pRole)
+  {
+    try
+    {
+      return ERole.valueOf(pRole);
+    }
+    catch (IllegalArgumentException pE)
+    {
+      throw new RuntimeException("Role " + pRole + " is no valid user role!");
+    }
   }
 
   private static class _UserContext implements SecurityContext
   {
-    private final String authenticatedUser;
+    private final int authenticatedUserId;
     private final ERole userRole;
 
-    _UserContext(String pAuthenticatedUser, String pUserRole)
+    _UserContext(int pAuthenticatedUserId, ERole pUserRole)
     {
-      authenticatedUser = Objects.requireNonNull(pAuthenticatedUser);
-      userRole = _userRoleFromString(pUserRole);
+      authenticatedUserId = pAuthenticatedUserId;
+      userRole = pUserRole;
     }
 
     @Override
     public Principal getUserPrincipal()
     {
-      return () -> authenticatedUser;
+      return () -> String.valueOf(authenticatedUserId);
     }
 
     @Override
@@ -85,18 +93,6 @@ public final class SecureRequestBoundary implements ContainerRequestFilter
     public String getAuthenticationScheme()
     {
       return SecurityContext.DIGEST_AUTH;
-    }
-
-    private static ERole _userRoleFromString(String pRole)
-    {
-      try
-      {
-        return ERole.valueOf(pRole);
-      }
-      catch (IllegalArgumentException pE)
-      {
-        throw new RuntimeException("Role " + pRole + " is no valid user role!");
-      }
     }
   }
 }
