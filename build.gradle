@@ -1,9 +1,11 @@
-plugins {
-    id 'java'
-}
-
-sourceCompatibility = 1.11
-
-repositories {
+buildscript {
+  repositories {
     mavenCentral()
+    google()
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'com.android.tools.build:gradle:3.5.1'
+  }
 }
