@@ -1,4 +1,3 @@
-include ':svl-app'
 include 'svl-communication'
 include 'svl-server'
 

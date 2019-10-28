@@ -1,22 +1,63 @@
 package com.github.simondan.svl.server.behindtheapi;
 
 import com.github.simondan.svl.server.auth.*;
-import com.github.simondan.svl.server.security.ERole;
+import com.github.simondan.svl.server.auth.exceptions.*;
+import com.github.simondan.svl.server.security.RequestSecurityContext;
+import org.glassfish.jersey.process.internal.RequestScoped;
+
+import javax.inject.Inject;
+import java.util.Objects;
+
+import static de.adito.ojcms.persistence.OJContainers.SVL_USERS;
 
 /**
  * @author Simon Danner, 30.09.2019
  */
+@RequestScoped
 public class UserService implements IUserService
 {
+  @Inject
+  private RequestSecurityContext securityContext;
+
+  private User authenticatedUser;
+
   @Override
-  public User authenticateUser(String pFirstName, String pLastName, String pPassword)
+  public User authenticateUser(UserName pUserName, String pPassword) throws BadCredentialsException
   {
-    return new User(pFirstName, pLastName, pPassword, ERole.DEFAULT);
+    return SVL_USERS.stream()
+        .filter(pUser -> Objects.equals(pUserName, pUser.getValue(User.NAME)) && Objects.equals(pPassword, pUser.getValue(User.PASSWORD)))
+        .findAny()
+        .orElseThrow(() -> new BadCredentialsException(pUserName));
   }
 
   @Override
-  public void registerNewUser(User pUser)
+  public User registerNewUser(UserName pUserName, String pEmail) throws UserAlreadyExistsException
+  {
+    if (SVL_USERS.findOneByFieldValue(User.NAME, pUserName).isPresent())
+      throw new UserAlreadyExistsException(pUserName);
+
+    return new User(pUserName, _generateNewPassword(), pEmail);
+  }
+
+  @Override
+  public void requestNewPasswordByMail(UserName pUserName)
   {
 
+  }
+
+  @Override
+  public User getAuthenticatedUser()
+  {
+    if (authenticatedUser == null)
+      authenticatedUser = securityContext.getAuthenticatedUserName()
+          .flatMap(authUserName -> SVL_USERS.findOneByFieldValue(User.NAME, authUserName))
+          .orElseThrow(NoAuthenticatedUserException::new);
+
+    return authenticatedUser;
+  }
+
+  private String _generateNewPassword()
+  {
+    return "test"; //TODO
   }
 }

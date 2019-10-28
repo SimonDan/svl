@@ -1,6 +1,7 @@
 plugins {
   id 'java'
   id 'war'
+  id 'idea'
   id 'org.gretty' version '2.3.1'
 }
 
@@ -11,12 +12,22 @@ repositories {
 }
 
 dependencies {
-  compile group: 'com.auth0', name: 'java-jwt', version: '3.8.2'
-  compile group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.29.1'
-  compile group: 'org.glassfish.jersey.containers', name: 'jersey-container-jetty-servlet', version: '2.29.1'
-  compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
-  compile group: 'de.adito.ojcms', name: 'ojcms-persistence', version: '1.0-SNAPSHOT'
+  implementation project(':svl-communication')
+
+  implementation group: 'com.auth0', name: 'java-jwt', version: '3.8.2'
+  implementation group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.29.1'
+  implementation group: 'org.glassfish.jersey.containers', name: 'jersey-container-jetty-servlet', version: '2.29.1'
+  implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
+  implementation group: 'org.apache.derby', name: 'derbyclient', version: '10.15.1.3'
+  implementation group: 'de.adito.ojcms', name: 'ojcms-persistence', version: '1.0-SNAPSHOT'
+  annotationProcessor group: 'de.adito.ojcms', name: 'ojcms-persistence', version: '1.0-SNAPSHOT'
 }
+
+compileJava {
+  options.annotationProcessorGeneratedSourcesDirectory = file("${projectDir}/src/main/generated")
+}
+
+sourceSets.main.java.srcDir file("${projectDir}/src/main/generated")
 
 gretty {
   servletContainer = 'jetty9.4'

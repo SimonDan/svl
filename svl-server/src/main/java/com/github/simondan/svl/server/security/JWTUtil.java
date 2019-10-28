@@ -13,8 +13,7 @@ import java.util.Date;
  */
 public final class JWTUtil
 {
-  static final String USER_ID_CLAIM = "claim_user_id";
-  static final String USER_ROLE_CLAIM = "claim_user_role";
+  static final String USER_NAME_CLAIM = "claim_user_name";
 
   private static final Algorithm ALGORITHM = Algorithm.HMAC256("TODO");
   private static final JWTVerifier VERIFIER = JWT.require(ALGORITHM).build();
@@ -29,8 +28,7 @@ public final class JWTUtil
 
     return JWT.create()
         .withExpiresAt(expirationDate)
-        .withClaim(USER_ID_CLAIM, pUser.getValue(User.ID))
-        .withClaim(USER_ROLE_CLAIM, pUser.getValue(User.ROLE).toString())
+        .withClaim(USER_NAME_CLAIM, pUser.getValue(User.NAME).toString())
         .sign(ALGORITHM);
   }
 

@@ -2,6 +2,7 @@ package com.github.simondan.svl.server.auth;
 
 import com.github.simondan.svl.server.security.ERole;
 import de.adito.ojcms.beans.*;
+import de.adito.ojcms.beans.annotations.*;
 import de.adito.ojcms.beans.literals.fields.types.*;
 import de.adito.ojcms.persistence.Persist;
 import de.adito.ojcms.persistence.util.EStorageMode;
@@ -12,17 +13,21 @@ import de.adito.ojcms.persistence.util.EStorageMode;
 @Persist(containerId = "SVL_USERS", storageMode = EStorageMode.AUTOMATIC)
 public class User extends OJBean<User>
 {
-  public static final IntegerField ID = OJFields.create(User.class);
-  public static final TextField FIRST_NAME = OJFields.create(User.class);
-  public static final TextField LAST_NAME = OJFields.create(User.class);
-  private static final TextField PASSWORD = OJFields.create(User.class);
+  @Identifier
+  @FinalNeverNull
+  public static final GenericField<UserName> NAME = OJFields.create(User.class);
+  @NeverNull
+  public static final TextField PASSWORD = OJFields.create(User.class);
+  @FinalNeverNull
+  public static final TextField EMAIL = OJFields.create(User.class);
+  @NeverNull
   public static final EnumField<ERole> ROLE = OJFields.create(User.class);
 
-  public User(String pFirstName, String pLastName, String pPassword, ERole pRole)
+  public User(UserName pName, String pPassword, String pEmail)
   {
-    setValue(FIRST_NAME, pFirstName);
-    setValue(LAST_NAME, pLastName);
+    setValue(NAME, pName);
     setValue(PASSWORD, pPassword);
-    setValue(ROLE, pRole);
+    setValue(EMAIL, pEmail);
+    setValue(ROLE, ERole.DEFAULT);
   }
 }
