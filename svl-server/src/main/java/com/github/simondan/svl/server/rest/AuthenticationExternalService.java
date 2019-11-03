@@ -1,6 +1,6 @@
 package com.github.simondan.svl.server.rest;
 
-import com.github.simondan.svl.communication.auth.IAuthResponse;
+import com.github.simondan.svl.communication.auth.AuthenticationResponse;
 import com.github.simondan.svl.server.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.*;
 import com.github.simondan.svl.server.security.JWTUtil;
@@ -20,6 +20,7 @@ public final class AuthenticationExternalService
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @Produces(MediaType.APPLICATION_JSON)
   public Response authUser(@FormParam("firstName") String pFirstName, @FormParam("lastName") String pLastName,
                            @FormParam("password") String pPassword)
   {
@@ -39,6 +40,8 @@ public final class AuthenticationExternalService
   }
 
   @PUT
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @Produces(MediaType.APPLICATION_JSON)
   public Response registerUser(@FormParam("firstName") String pFirstName, @FormParam("lastName") String pLastName,
                                @FormParam("email") String pEmail)
   {
@@ -60,23 +63,9 @@ public final class AuthenticationExternalService
   private Response _createAuthResponse(User pUser)
   {
     final String jwt = JWTUtil.createJwtForUser(pUser);
+    final String nextPassword = pUser.getValue(User.PASSWORD);
 
-    final IAuthResponse response = new IAuthResponse()
-    {
-      @Override
-      public String getToken()
-      {
-        return jwt;
-      }
-
-      @Override
-      public String getNextPassword()
-      {
-        return pUser.getValue(User.PASSWORD);
-      }
-    };
-
-    return Response.ok(response).build();
+    return Response.ok(new AuthenticationResponse(jwt, nextPassword)).build();
   }
 
   private Response _responseBadUserName(BadUserNameException pException)
@@ -88,8 +77,6 @@ public final class AuthenticationExternalService
 
   private Response _responseUserAlreadyExists(UserAlreadyExistsException pException)
   {
-    return Response.status(Response.Status.BAD_REQUEST)
-        .entity(pException.getMessage())
-        .build();
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), pException.getLocalizedMessage()).build();
   }
 }

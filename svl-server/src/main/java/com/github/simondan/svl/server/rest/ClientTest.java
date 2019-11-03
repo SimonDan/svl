@@ -1,6 +1,6 @@
 package com.github.simondan.svl.server.rest;
 
-import com.github.simondan.svl.communication.auth.IAuthResponse;
+import com.github.simondan.svl.communication.auth.AuthenticationResponse;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
@@ -13,31 +13,52 @@ public class ClientTest
 {
   public static void main(String[] args) throws ExecutionException, InterruptedException
   {
-    Form form = new Form();
-    form.param("firstName", "Alyssa")
-        .param("lastName", "William")
-        .param("password", "1021 Hweitt Street");
+    Form form1 = new Form();
+    form1.param("firstName", "Simon")
+        .param("lastName", "Danner")
+        .param("email", "simon.danner@gmx.de");
 
-    final Client client = ClientBuilder.newClient();
+    Form form2 = new Form();
+    form2.param("firstName", "Simon")
+        .param("lastName", "Danner")
+        .param("password", "test");
+
+    final Client client = ClientBuilder.newClient().register(GsonSerializationProvider.class);
+
     WebTarget target1 = client.target("http://localhost:8080/svl-server/dummy/test");
     WebTarget target2 = client.target("http://localhost:8080/svl-server/authentication");
 
-    Future<IAuthResponse> response1 = target2
+    Future<AuthenticationResponse> response1 = target2
         .request(MediaType.APPLICATION_FORM_URLENCODED)
-        .accept(MediaType.TEXT_PLAIN)
-        .buildPost(Entity.form(form)).submit(IAuthResponse.class);
+        .accept(MediaType.APPLICATION_JSON)
+        .buildPut(Entity.form(form1))
+        .submit(AuthenticationResponse.class);
 
-    final IAuthResponse response = response1.get();
+    Future<AuthenticationResponse> response2 = target2
+        .request(MediaType.APPLICATION_FORM_URLENCODED)
+        .accept(MediaType.APPLICATION_JSON)
+        .buildPost(Entity.form(form2))
+        .submit(AuthenticationResponse.class);
+
+    AuthenticationResponse response;
+    try
+    {
+      response = response1.get();
+    }
+    catch (Exception pE)
+    {
+      response = response2.get();
+    }
 
     System.out.println(response.getToken());
     System.out.println(response.getNextPassword());
 
-    final Future<Response> response2 = target1
+    final Future<Response> response3 = target1
         .request(MediaType.TEXT_PLAIN_TYPE)
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + response.getToken())
         .buildGet().submit();
 
-    final Response r = response2.get();
+    final Response r = response3.get();
 
     System.out.println(r);
   }

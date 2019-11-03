@@ -30,4 +30,12 @@ public class User extends OJBean<User>
     setValue(EMAIL, pEmail);
     setValue(ROLE, ERole.DEFAULT);
   }
+
+  /**
+   * Required by OJCMS.
+   */
+  @SuppressWarnings("unused")
+  private User()
+  {
+  }
 }

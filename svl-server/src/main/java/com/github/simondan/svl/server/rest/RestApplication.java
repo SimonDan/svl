@@ -4,7 +4,7 @@ import com.github.simondan.svl.server.auth.IUserService;
 import com.github.simondan.svl.server.behindtheapi.UserService;
 import com.github.simondan.svl.server.security.*;
 import de.adito.ojcms.persistence.OJPersistence;
-import de.adito.ojcms.sqlbuilder.definition.EDatabaseType;
+import de.adito.ojcms.sqlbuilder.platform.EEmbeddedDatabasePlatform;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -18,11 +18,12 @@ public class RestApplication extends ResourceConfig
 {
   public RestApplication()
   {
-    OJPersistence.configure(pFactory -> pFactory.sql(EDatabaseType.DERBY, "127.0.0.1", 1527, "svl"));
+    OJPersistence.configure(pFactory -> pFactory.forEmbeddedDatabase(EEmbeddedDatabasePlatform.DERBY));
 
     register(AuthenticationExternalService.class);
     register(DummySecureService.class);
     register(SecureRequestBoundary.class);
+    register(GsonSerializationProvider.class);
 
     register(new AbstractBinder()
     {
