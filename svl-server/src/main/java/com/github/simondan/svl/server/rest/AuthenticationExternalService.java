@@ -1,6 +1,6 @@
 package com.github.simondan.svl.server.rest;
 
-import com.github.simondan.svl.communication.auth.AuthenticationResponse;
+import com.github.simondan.svl.communication.auth.*;
 import com.github.simondan.svl.server.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.*;
 import com.github.simondan.svl.server.security.JWTUtil;
@@ -18,6 +18,7 @@ public final class AuthenticationExternalService
   @Inject
   private IUserService userService;
 
+  @Path("/auth")
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.APPLICATION_JSON)
@@ -35,11 +36,12 @@ public final class AuthenticationExternalService
     }
     catch (BadUserNameException pE)
     {
-      return _responseBadUserName(pE);
+      return _exceptionResponse(pE);
     }
   }
 
-  @PUT
+  @Path("/register")
+  @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.APPLICATION_JSON)
   public Response registerUser(@FormParam("firstName") String pFirstName, @FormParam("lastName") String pLastName,
@@ -50,13 +52,44 @@ public final class AuthenticationExternalService
       final User user = userService.registerNewUser(UserName.of(pFirstName, pLastName), pEmail);
       return _createAuthResponse(user);
     }
-    catch (BadUserNameException pE)
+    catch (BadUserNameException | UserAlreadyExistsException pE)
     {
-      return _responseBadUserName(pE);
+      return _exceptionResponse(pE);
     }
-    catch (UserAlreadyExistsException pE)
+  }
+
+  @Path("/requestCode")
+  @PUT
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response requestRestoreCode(@FormParam("firstName") String pFirstName, @FormParam("lastName") String pLastName,
+                                     @FormParam("email") String pEmail)
+  {
+    try
     {
-      return _responseUserAlreadyExists(pE);
+      userService.requestPasswordRestoreCodeByMail(UserName.of(pFirstName, pLastName), pEmail);
+      return Response.ok().build();
+    }
+    catch (BadUserNameException | MailNotMatchingException pE)
+    {
+      return _exceptionResponse(pE);
+    }
+  }
+
+  @Path("/restore")
+  @POST
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response restoreUser(@FormParam("firstName") String pFirstName, @FormParam("lastName") String pLastName,
+                              @FormParam("restoreCode") String pRestoreCode)
+  {
+    try
+    {
+      final User user = userService.restorePassword(UserName.of(pFirstName, pLastName), pRestoreCode);
+      return _createAuthResponse(user);
+    }
+    catch (BadUserNameException | BadRestoreCodeException pE)
+    {
+      return _exceptionResponse(pE);
     }
   }
 
@@ -64,19 +97,13 @@ public final class AuthenticationExternalService
   {
     final String jwt = JWTUtil.createJwtForUser(pUser);
     final String nextPassword = pUser.getValue(User.PASSWORD);
+    final EUserRole userRole = pUser.getValue(User.ROLE);
 
-    return Response.ok(new AuthenticationResponse(jwt, nextPassword)).build();
+    return Response.ok(new AuthenticationResponse(jwt, nextPassword, userRole)).build();
   }
 
-  private Response _responseBadUserName(BadUserNameException pException)
+  private Response _exceptionResponse(Exception pException)
   {
-    return Response.status(Response.Status.BAD_REQUEST)
-        .entity(pException.getMessage())
-        .build();
-  }
-
-  private Response _responseUserAlreadyExists(UserAlreadyExistsException pException)
-  {
-    return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), pException.getLocalizedMessage()).build();
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), pException.getMessage()).build();
   }
 }

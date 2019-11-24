@@ -7,3 +7,20 @@ repositories {
   mavenLocal()
 }
 
+publishing {
+  publications {
+    maven(MavenPublication) {
+      groupId = 'com.github.simondan'
+      artifactId = 'svl-communication'
+      version = '1.0-SNAPSHOT'
+
+      from components.java
+    }
+  }
+}
+
+compileJava {
+  sourceCompatibility = '1.8'
+  targetCompatibility = '1.8'
+}
+

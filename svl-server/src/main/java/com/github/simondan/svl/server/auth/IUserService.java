@@ -11,7 +11,9 @@ public interface IUserService
 
   User registerNewUser(UserName pUserName, String pEmail) throws UserAlreadyExistsException;
 
-  void requestNewPasswordByMail(UserName pUserName);
+  void requestPasswordRestoreCodeByMail(UserName pUserName, String pMail) throws MailNotMatchingException;
+
+  User restorePassword(UserName pUserName, String pRestoreCode) throws BadRestoreCodeException;
 
   User getAuthenticatedUser();
 }

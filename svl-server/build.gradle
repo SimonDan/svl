@@ -33,5 +33,8 @@ sourceSets.main.java.srcDir file("${projectDir}/src/main/generated")
 gretty {
   servletContainer = 'jetty9.4'
   debugPort = 5005
+  httpsPort = 8080
   debugSuspend = true
+  httpsEnabled = true
+  httpEnabled = false
 }

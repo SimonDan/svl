@@ -40,9 +40,22 @@ public class UserService implements IUserService
   }
 
   @Override
-  public void requestNewPasswordByMail(UserName pUserName)
+  public void requestPasswordRestoreCodeByMail(UserName pUserName, String pMail) throws MailNotMatchingException
   {
+    final User user = SVL_USERS.stream()
+        .filter(pUser -> Objects.equals(pUserName, pUser.getValue(User.NAME)) && Objects.equals(pMail, pUser.getValue(User.EMAIL)))
+        .findAny()
+        .orElseThrow(() -> new MailNotMatchingException(pUserName, pMail));
 
+    final String restoreCode = user.generateAndSetRestoreCode();
+
+    MailSender.sendRestoreCodeMail(user, restoreCode);
+  }
+
+  @Override
+  public User restorePassword(UserName pUserName, String pRestoreCode) throws BadRestoreCodeException
+  {
+    return null;
   }
 
   @Override

@@ -1,5 +1,7 @@
 package com.github.simondan.svl.server.security;
 
+import com.github.simondan.svl.communication.auth.EUserRole;
+
 import javax.ws.rs.NameBinding;
 import java.lang.annotation.*;
 
@@ -20,5 +22,5 @@ public @interface SecureBoundary
    *
    * @return roles that are allowed to use the annotated method (empty means no restriction)
    */
-  ERole[] requiresOneOfTheseRoles() default {};
+  EUserRole[] requiresOneOfTheseRoles() default {};
 }
