@@ -87,7 +87,7 @@ public final class AuthenticationExternalService
       final User user = userService.restorePassword(UserName.of(pFirstName, pLastName), pRestoreCode);
       return _createAuthResponse(user);
     }
-    catch (BadUserNameException | BadRestoreCodeException pE)
+    catch (BadUserNameException | BadRestoreCodeException | UserNotFoundException pE)
     {
       return _exceptionResponse(pE);
     }

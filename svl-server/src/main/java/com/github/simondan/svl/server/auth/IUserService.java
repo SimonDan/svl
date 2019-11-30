@@ -13,7 +13,7 @@ public interface IUserService
 
   void requestPasswordRestoreCodeByMail(UserName pUserName, String pMail) throws MailNotMatchingException;
 
-  User restorePassword(UserName pUserName, String pRestoreCode) throws BadRestoreCodeException;
+  User restorePassword(UserName pUserName, String pRestoreCode) throws UserNotFoundException, BadRestoreCodeException;
 
   User getAuthenticatedUser();
 }

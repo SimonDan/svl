@@ -6,6 +6,7 @@ import com.github.simondan.svl.server.security.RequestSecurityContext;
 import org.glassfish.jersey.process.internal.RequestScoped;
 
 import javax.inject.Inject;
+import java.time.Duration;
 import java.util.Objects;
 
 import static de.adito.ojcms.persistence.OJContainers.SVL_USERS;
@@ -16,6 +17,8 @@ import static de.adito.ojcms.persistence.OJContainers.SVL_USERS;
 @RequestScoped
 public class UserService implements IUserService
 {
+  private static final Duration RESTORE_CODE_EXPIRATION_THRESHOLD = Duration.ofMinutes(10);
+
   @Inject
   private RequestSecurityContext securityContext;
 
@@ -24,10 +27,14 @@ public class UserService implements IUserService
   @Override
   public User authenticateUser(UserName pUserName, String pPassword) throws BadCredentialsException
   {
-    return SVL_USERS.stream()
+    final User authenticatedUser = SVL_USERS.stream()
         .filter(pUser -> Objects.equals(pUserName, pUser.getValue(User.NAME)) && Objects.equals(pPassword, pUser.getValue(User.PASSWORD)))
         .findAny()
         .orElseThrow(() -> new BadCredentialsException(pUserName));
+
+    authenticatedUser.generateNewPassword();
+
+    return authenticatedUser;
   }
 
   @Override
@@ -36,7 +43,7 @@ public class UserService implements IUserService
     if (SVL_USERS.findOneByFieldValue(User.NAME, pUserName).isPresent())
       throw new UserAlreadyExistsException(pUserName);
 
-    return new User(pUserName, _generateNewPassword(), pEmail);
+    return new User(pUserName, pEmail);
   }
 
   @Override
@@ -53,9 +60,14 @@ public class UserService implements IUserService
   }
 
   @Override
-  public User restorePassword(UserName pUserName, String pRestoreCode) throws BadRestoreCodeException
+  public User restorePassword(UserName pUserName, String pRestoreCode) throws UserNotFoundException, BadRestoreCodeException
   {
-    return null;
+    final User user = SVL_USERS.findOneByFieldValue(User.NAME, pUserName)
+        .orElseThrow(() -> new UserNotFoundException(pUserName));
+
+    user.validateAndResetRestoreCode(pRestoreCode, RESTORE_CODE_EXPIRATION_THRESHOLD);
+
+    return user;
   }
 
   @Override
@@ -67,10 +79,5 @@ public class UserService implements IUserService
           .orElseThrow(NoAuthenticatedUserException::new);
 
     return authenticatedUser;
-  }
-
-  private String _generateNewPassword()
-  {
-    return "test"; //TODO
   }
 }
