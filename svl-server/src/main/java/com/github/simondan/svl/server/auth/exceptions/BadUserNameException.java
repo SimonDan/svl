@@ -9,4 +9,9 @@ public class BadUserNameException extends Exception
   {
     super(pCause);
   }
+
+  public BadUserNameException(int pMinLength, int pMaxLength)
+  {
+    super("A first or last name must contain between " + pMinLength + " and " + pMaxLength + " characters!");
+  }
 }

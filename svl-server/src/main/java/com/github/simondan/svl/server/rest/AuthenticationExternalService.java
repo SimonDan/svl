@@ -52,7 +52,7 @@ public final class AuthenticationExternalService
       final User user = userService.registerNewUser(UserName.of(pFirstName, pLastName), pEmail);
       return _createAuthResponse(user);
     }
-    catch (BadUserNameException | UserAlreadyExistsException pE)
+    catch (BadUserNameException | UserAlreadyExistsException | BadMailAddressException pE)
     {
       return _exceptionResponse(pE);
     }

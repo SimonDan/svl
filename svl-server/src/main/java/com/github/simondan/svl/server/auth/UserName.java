@@ -4,6 +4,7 @@ import com.github.simondan.svl.server.auth.exceptions.BadUserNameException;
 
 import java.util.Objects;
 
+import static com.github.simondan.svl.communication.utils.SharedUtils.*;
 import static de.adito.ojcms.utils.StringUtility.requireNotEmpty;
 
 /**
@@ -35,20 +36,10 @@ public final class UserName
     }
   }
 
-  private UserName(String pFirstName, String pLastName)
+  private UserName(String pFirstName, String pLastName) throws BadUserNameException
   {
-    firstName = requireNotEmpty(pFirstName, "first name");
-    lastName = requireNotEmpty(pLastName, "last name");
-  }
-
-  public String getFirstName()
-  {
-    return firstName;
-  }
-
-  public String getLastName()
-  {
-    return lastName;
+    firstName = _prettyName(requireNotEmpty(pFirstName, "first name"));
+    lastName = _prettyName(requireNotEmpty(pLastName, "last name"));
   }
 
   @Override
@@ -73,5 +64,14 @@ public final class UserName
   public int hashCode()
   {
     return Objects.hash(firstName, lastName);
+  }
+
+  private String _prettyName(String pName) throws BadUserNameException
+  {
+    if (pName.length() < MIN_NAME_LENGTH || pName.length() > MAX_NAME_LENGTH)
+      throw new BadUserNameException(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
+
+    final String lowerCase = pName.toLowerCase();
+    return Character.toUpperCase(lowerCase.charAt(0)) + lowerCase.substring(1);
   }
 }

@@ -1,14 +1,15 @@
 package com.github.simondan.svl.server.behindtheapi;
 
+import com.github.simondan.svl.communication.utils.SharedUtils;
 import com.github.simondan.svl.server.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.*;
 import com.github.simondan.svl.server.security.RequestSecurityContext;
 import org.glassfish.jersey.process.internal.RequestScoped;
 
 import javax.inject.Inject;
-import java.time.Duration;
 import java.util.Objects;
 
+import static com.github.simondan.svl.communication.utils.SharedUtils.VALID_EMAIL_ADDRESS_REGEX;
 import static de.adito.ojcms.persistence.OJContainers.SVL_USERS;
 
 /**
@@ -17,10 +18,10 @@ import static de.adito.ojcms.persistence.OJContainers.SVL_USERS;
 @RequestScoped
 public class UserService implements IUserService
 {
-  private static final Duration RESTORE_CODE_EXPIRATION_THRESHOLD = Duration.ofMinutes(10);
-
   @Inject
   private RequestSecurityContext securityContext;
+  @Inject
+  private MailSender mailSender;
 
   private User authenticatedUser;
 
@@ -38,10 +39,13 @@ public class UserService implements IUserService
   }
 
   @Override
-  public User registerNewUser(UserName pUserName, String pEmail) throws UserAlreadyExistsException
+  public User registerNewUser(UserName pUserName, String pEmail) throws UserAlreadyExistsException, BadMailAddressException
   {
     if (SVL_USERS.findOneByFieldValue(User.NAME, pUserName).isPresent())
       throw new UserAlreadyExistsException(pUserName);
+
+    if (!SharedUtils.validatePattern(VALID_EMAIL_ADDRESS_REGEX, pEmail))
+      throw new BadMailAddressException(pEmail);
 
     return new User(pUserName, pEmail);
   }
@@ -54,9 +58,8 @@ public class UserService implements IUserService
         .findAny()
         .orElseThrow(() -> new MailNotMatchingException(pUserName, pMail));
 
-    final String restoreCode = user.generateAndSetRestoreCode();
-
-    MailSender.sendRestoreCodeMail(user, restoreCode);
+    user.generateRestoreCode();
+    mailSender.sendRestoreCodeMail(user);
   }
 
   @Override
@@ -65,7 +68,7 @@ public class UserService implements IUserService
     final User user = SVL_USERS.findOneByFieldValue(User.NAME, pUserName)
         .orElseThrow(() -> new UserNotFoundException(pUserName));
 
-    user.validateAndResetRestoreCode(pRestoreCode, RESTORE_CODE_EXPIRATION_THRESHOLD);
+    user.validateAndResetRestoreCode(pRestoreCode);
 
     return user;
   }

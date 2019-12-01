@@ -9,6 +9,6 @@ public class MailNotMatchingException extends Exception
 {
   public MailNotMatchingException(UserName pUserName, String pMail)
   {
-
+    super("No user " + pUserName + " with mail " + pMail + " found!");
   }
 }

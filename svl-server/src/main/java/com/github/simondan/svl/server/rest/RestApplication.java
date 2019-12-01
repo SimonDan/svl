@@ -1,7 +1,7 @@
 package com.github.simondan.svl.server.rest;
 
 import com.github.simondan.svl.server.auth.IUserService;
-import com.github.simondan.svl.server.behindtheapi.UserService;
+import com.github.simondan.svl.server.behindtheapi.*;
 import com.github.simondan.svl.server.security.*;
 import de.adito.ojcms.persistence.OJPersistence;
 import de.adito.ojcms.sqlbuilder.platform.EEmbeddedDatabasePlatform;
@@ -32,6 +32,8 @@ public class RestApplication extends ResourceConfig
       {
         bind(UserService.class).to(IUserService.class);
         bindAsContract(RequestSecurityContext.class);
+        bindAsContract(MailSender.class);
+        bindAsContract(Config.class);
       }
     });
   }

@@ -9,7 +9,7 @@ public interface IUserService
 {
   User authenticateUser(UserName pUserName, String pPassword) throws BadCredentialsException;
 
-  User registerNewUser(UserName pUserName, String pEmail) throws UserAlreadyExistsException;
+  User registerNewUser(UserName pUserName, String pEmail) throws UserAlreadyExistsException, BadMailAddressException;
 
   void requestPasswordRestoreCodeByMail(UserName pUserName, String pMail) throws MailNotMatchingException;
 

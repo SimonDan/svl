@@ -12,6 +12,8 @@ import java.security.SecureRandom;
 import java.time.*;
 import java.util.*;
 
+import static com.github.simondan.svl.communication.utils.SharedUtils.*;
+
 /**
  * @author Simon Danner, 20.09.2019
  */
@@ -52,16 +54,13 @@ public class User extends OJBean<User>
     setValue(PASSWORD, RandomString.next(50));
   }
 
-  public String generateAndSetRestoreCode()
+  public void generateRestoreCode()
   {
-    final String code = RandomString.next(8);
     setValue(RESTORE_TIMESTAMP, Instant.now());
-    setValue(RESTORE_CODE, code);
-
-    return code;
+    setValue(RESTORE_CODE, RandomString.next(CODE_LENGTH));
   }
 
-  public void validateAndResetRestoreCode(String pRestoreCode, Duration pAllowedRestoreDuration) throws BadRestoreCodeException
+  public void validateAndResetRestoreCode(String pRestoreCode) throws BadRestoreCodeException
   {
     final String code = getValue(RESTORE_CODE);
 
@@ -72,11 +71,11 @@ public class User extends OJBean<User>
       throw new BadRestoreCodeException(pRestoreCode);
 
     final Instant restoreCodeTimestamp = getValue(RESTORE_TIMESTAMP);
-    if (Duration.between(restoreCodeTimestamp, Instant.now()).compareTo(pAllowedRestoreDuration) > 0)
-      throw new BadRestoreCodeException(pAllowedRestoreDuration);
+    if (Duration.between(restoreCodeTimestamp, Instant.now()).compareTo(RESTORE_CODE_EXPIRATION_THRESHOLD) > 0)
+      throw new BadRestoreCodeException(RESTORE_CODE_EXPIRATION_THRESHOLD);
 
-    setValue(RESTORE_TIMESTAMP, null);
     setValue(RESTORE_CODE, null);
+    setValue(RESTORE_TIMESTAMP, null);
   }
 
   private static class RandomString
