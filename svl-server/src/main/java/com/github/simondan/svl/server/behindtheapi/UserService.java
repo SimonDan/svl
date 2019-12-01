@@ -1,5 +1,6 @@
 package com.github.simondan.svl.server.behindtheapi;
 
+import com.github.simondan.svl.communication.auth.UserName;
 import com.github.simondan.svl.communication.utils.SharedUtils;
 import com.github.simondan.svl.server.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.*;
@@ -39,15 +40,18 @@ public class UserService implements IUserService
   }
 
   @Override
-  public User registerNewUser(UserName pUserName, String pEmail) throws UserAlreadyExistsException, BadMailAddressException
+  public User registerNewUser(UserName pUserName, String pMail) throws UserAlreadyExistsException, BadMailAddressException
   {
+    if (!SharedUtils.validatePattern(VALID_EMAIL_ADDRESS_REGEX, pMail))
+      throw new BadMailAddressException(pMail + " is not a vail email address!");
+
     if (SVL_USERS.findOneByFieldValue(User.NAME, pUserName).isPresent())
       throw new UserAlreadyExistsException(pUserName);
 
-    if (!SharedUtils.validatePattern(VALID_EMAIL_ADDRESS_REGEX, pEmail))
-      throw new BadMailAddressException(pEmail);
+    if (SVL_USERS.findOneByFieldValue(User.EMAIL, pMail).isPresent())
+      throw new BadMailAddressException("Mail address " + pMail + " has already been user by another user!");
 
-    return new User(pUserName, pEmail);
+    return new User(pUserName, pMail);
   }
 
   @Override

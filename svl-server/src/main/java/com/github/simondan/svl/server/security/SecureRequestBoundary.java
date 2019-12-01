@@ -2,8 +2,7 @@ package com.github.simondan.svl.server.security;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.github.simondan.svl.server.auth.UserName;
-import com.github.simondan.svl.server.auth.exceptions.BadUserNameException;
+import com.github.simondan.svl.communication.auth.*;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;

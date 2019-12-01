@@ -5,8 +5,8 @@ package com.github.simondan.svl.server.auth.exceptions;
  */
 public class BadMailAddressException extends Exception
 {
-  public BadMailAddressException(String pMail)
+  public BadMailAddressException(String pMessage)
   {
-    super(pMail + " is not a vail email address!");
+    super(pMessage);
   }
 }

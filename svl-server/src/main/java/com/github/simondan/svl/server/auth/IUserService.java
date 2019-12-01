@@ -1,5 +1,6 @@
 package com.github.simondan.svl.server.auth;
 
+import com.github.simondan.svl.communication.auth.UserName;
 import com.github.simondan.svl.server.auth.exceptions.*;
 
 /**
@@ -9,7 +10,7 @@ public interface IUserService
 {
   User authenticateUser(UserName pUserName, String pPassword) throws BadCredentialsException;
 
-  User registerNewUser(UserName pUserName, String pEmail) throws UserAlreadyExistsException, BadMailAddressException;
+  User registerNewUser(UserName pUserName, String pMail) throws UserAlreadyExistsException, BadMailAddressException;
 
   void requestPasswordRestoreCodeByMail(UserName pUserName, String pMail) throws MailNotMatchingException;
 

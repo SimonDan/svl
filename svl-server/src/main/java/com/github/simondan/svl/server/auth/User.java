@@ -1,6 +1,6 @@
 package com.github.simondan.svl.server.auth;
 
-import com.github.simondan.svl.communication.auth.EUserRole;
+import com.github.simondan.svl.communication.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.BadRestoreCodeException;
 import de.adito.ojcms.beans.*;
 import de.adito.ojcms.beans.annotations.*;

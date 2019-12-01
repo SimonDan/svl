@@ -1,4 +1,4 @@
-package com.github.simondan.svl.server.auth.exceptions;
+package com.github.simondan.svl.communication.auth;
 
 /**
  * @author Simon Danner, 11.10.2019

@@ -1,6 +1,4 @@
-package com.github.simondan.svl.server.auth;
-
-import com.github.simondan.svl.server.auth.exceptions.BadUserNameException;
+package com.github.simondan.svl.communication.auth;
 
 import java.util.Objects;
 
@@ -40,6 +38,16 @@ public final class UserName
   {
     firstName = _prettyName(requireNotEmpty(pFirstName, "first name"));
     lastName = _prettyName(requireNotEmpty(pLastName, "last name"));
+  }
+
+  public String getFirstName()
+  {
+    return firstName;
+  }
+
+  public String getLastName()
+  {
+    return lastName;
   }
 
   @Override

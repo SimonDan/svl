@@ -1,5 +1,6 @@
 package com.github.simondan.svl.server.behindtheapi;
 
+import com.github.simondan.svl.communication.auth.UserName;
 import com.github.simondan.svl.server.auth.*;
 import org.simplejavamail.email.*;
 import org.simplejavamail.mailer.MailerBuilder;

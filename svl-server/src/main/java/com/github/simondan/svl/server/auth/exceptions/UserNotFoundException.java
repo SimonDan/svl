@@ -1,6 +1,6 @@
 package com.github.simondan.svl.server.auth.exceptions;
 
-import com.github.simondan.svl.server.auth.UserName;
+import com.github.simondan.svl.communication.auth.UserName;
 
 /**
  * @author Simon Danner, 30.11.2019
