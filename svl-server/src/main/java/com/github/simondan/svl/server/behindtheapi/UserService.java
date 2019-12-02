@@ -5,10 +5,10 @@ import com.github.simondan.svl.communication.utils.SharedUtils;
 import com.github.simondan.svl.server.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.*;
 import com.github.simondan.svl.server.security.RequestSecurityContext;
+import de.adito.ojcms.beans.literals.fields.util.FieldValueTuple;
 import org.glassfish.jersey.process.internal.RequestScoped;
 
 import javax.inject.Inject;
-import java.util.Objects;
 
 import static com.github.simondan.svl.communication.utils.SharedUtils.VALID_EMAIL_ADDRESS_REGEX;
 import static de.adito.ojcms.persistence.OJContainers.SVL_USERS;
@@ -29,13 +29,11 @@ public class UserService implements IUserService
   @Override
   public User authenticateUser(UserName pUserName, String pPassword) throws BadCredentialsException
   {
-    final User authenticatedUser = SVL_USERS.stream()
-        .filter(pUser -> Objects.equals(pUserName, pUser.getValue(User.NAME)) && Objects.equals(pPassword, pUser.getValue(User.PASSWORD)))
-        .findAny()
+    final User authenticatedUser = SVL_USERS
+        .findOneByFieldValues(new FieldValueTuple<>(User.NAME, pUserName), new FieldValueTuple<>(User.PASSWORD, pPassword))
         .orElseThrow(() -> new BadCredentialsException(pUserName));
 
     authenticatedUser.generateNewPassword();
-
     return authenticatedUser;
   }
 
@@ -49,7 +47,7 @@ public class UserService implements IUserService
       throw new UserAlreadyExistsException(pUserName);
 
     if (SVL_USERS.findOneByFieldValue(User.EMAIL, pMail).isPresent())
-      throw new BadMailAddressException("Mail address " + pMail + " has already been user by another user!");
+      throw new BadMailAddressException("Mail address " + pMail + " has already been used by another user!");
 
     return new User(pUserName, pMail);
   }
@@ -57,9 +55,8 @@ public class UserService implements IUserService
   @Override
   public void requestPasswordRestoreCodeByMail(UserName pUserName, String pMail) throws MailNotMatchingException
   {
-    final User user = SVL_USERS.stream()
-        .filter(pUser -> Objects.equals(pUserName, pUser.getValue(User.NAME)) && Objects.equals(pMail, pUser.getValue(User.EMAIL)))
-        .findAny()
+    final User user = SVL_USERS
+        .findOneByFieldValues(new FieldValueTuple<>(User.NAME, pUserName), new FieldValueTuple<>(User.EMAIL, pMail))
         .orElseThrow(() -> new MailNotMatchingException(pUserName, pMail));
 
     user.generateRestoreCode();
@@ -73,7 +70,6 @@ public class UserService implements IUserService
         .orElseThrow(() -> new UserNotFoundException(pUserName));
 
     user.validateAndResetRestoreCode(pRestoreCode);
-
     return user;
   }
 
