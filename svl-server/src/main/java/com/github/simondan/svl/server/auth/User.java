@@ -2,15 +2,15 @@ package com.github.simondan.svl.server.auth;
 
 import com.github.simondan.svl.communication.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.BadRestoreCodeException;
+import com.github.simondan.svl.server.security.RandomString;
 import de.adito.ojcms.beans.*;
 import de.adito.ojcms.beans.annotations.*;
 import de.adito.ojcms.beans.literals.fields.types.*;
 import de.adito.ojcms.persistence.Persist;
 import de.adito.ojcms.persistence.util.EStorageMode;
 
-import java.security.SecureRandom;
 import java.time.*;
-import java.util.*;
+import java.util.Objects;
 
 import static com.github.simondan.svl.communication.utils.SharedUtils.*;
 
@@ -51,13 +51,13 @@ public class User extends OJBean<User>
 
   public void generateNewPassword()
   {
-    setValue(PASSWORD, RandomString.next(50));
+    setValue(PASSWORD, RandomString.generate(50));
   }
 
   public void generateRestoreCode()
   {
     setValue(RESTORE_TIMESTAMP, Instant.now());
-    setValue(RESTORE_CODE, RandomString.next(CODE_LENGTH));
+    setValue(RESTORE_CODE, RandomString.generate(CODE_LENGTH));
   }
 
   public void validateAndResetRestoreCode(String pRestoreCode) throws BadRestoreCodeException
@@ -76,27 +76,5 @@ public class User extends OJBean<User>
 
     setValue(RESTORE_CODE, null);
     setValue(RESTORE_TIMESTAMP, null);
-  }
-
-  private static class RandomString
-  {
-    private static final String UPPER_ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final String LOWER_ABC = UPPER_ABC.toLowerCase(Locale.ROOT);
-    private static final String DIGITS = "0123456789";
-    private static final char[] ABC = (UPPER_ABC + LOWER_ABC + DIGITS).toCharArray();
-    private static final Random RANDOM = new SecureRandom();
-
-    static String next(int pLength)
-    {
-      if (pLength < 1)
-        throw new IllegalArgumentException("Bad length: " + pLength);
-
-      final char[] buffer = new char[pLength];
-
-      for (int i = 0; i < buffer.length; ++i)
-        buffer[i] = ABC[RANDOM.nextInt(ABC.length)];
-
-      return new String(buffer);
-    }
   }
 }

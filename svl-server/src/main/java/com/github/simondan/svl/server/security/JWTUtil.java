@@ -15,7 +15,8 @@ public final class JWTUtil
 {
   static final String USER_NAME_CLAIM = "claim_user_name";
 
-  private static final Algorithm ALGORITHM = Algorithm.HMAC256("TODO");
+  //Generate secret within static context -> it is valid per JVM instance -> tokens will expire with server restart
+  private static final Algorithm ALGORITHM = Algorithm.HMAC256(RandomString.generate(50));
   private static final JWTVerifier VERIFIER = JWT.require(ALGORITHM).build();
 
   private JWTUtil()
