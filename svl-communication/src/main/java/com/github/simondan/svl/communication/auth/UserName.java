@@ -17,7 +17,7 @@ public final class UserName
   {
     final String[] parts = combinedString.split(" ");
     if (parts.length != 2)
-      throw new BadUserNameException(new IndexOutOfBoundsException("Unable to split combined user name!"));
+      throw new BadUserNameException(new IndexOutOfBoundsException("Unable to split combined user name " + combinedString));
 
     return of(parts[0], parts[1]);
   }
@@ -79,7 +79,7 @@ public final class UserName
     if (pName.length() < MIN_NAME_LENGTH || pName.length() > MAX_NAME_LENGTH)
       throw new BadUserNameException(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
 
-    final String lowerCase = pName.toLowerCase();
+    final String lowerCase = pName.trim().toLowerCase();
     return Character.toUpperCase(lowerCase.charAt(0)) + lowerCase.substring(1);
   }
 }

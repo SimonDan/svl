@@ -1,13 +1,13 @@
 package com.github.simondan.svl.server.rest;
 
-import com.google.gson.*;
-
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.ext.*;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+
+import static com.github.simondan.svl.communication.utils.GsonFactory.GSON;
 
 /**
  * @author Simon Danner, 03.11.2019
@@ -17,8 +17,6 @@ import java.lang.reflect.Type;
 @Produces(MediaType.APPLICATION_JSON)
 public class GsonSerializationProvider implements MessageBodyReader<Object>, MessageBodyWriter<Object>
 {
-  private static final Gson GSON = new GsonBuilder().create();
-
   @Override
   public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
   {

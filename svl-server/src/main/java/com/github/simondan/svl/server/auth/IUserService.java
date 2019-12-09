@@ -1,6 +1,6 @@
 package com.github.simondan.svl.server.auth;
 
-import com.github.simondan.svl.communication.auth.UserName;
+import com.github.simondan.svl.communication.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.*;
 
 /**
@@ -8,13 +8,13 @@ import com.github.simondan.svl.server.auth.exceptions.*;
  */
 public interface IUserService
 {
-  User authenticateUser(UserName pUserName, String pPassword) throws BadCredentialsException;
+  User authenticateUser(IAuthenticationRequest pAuthenticationRequest) throws BadCredentialsException;
 
-  User registerNewUser(UserName pUserName, String pMail) throws UserAlreadyExistsException, BadMailAddressException;
+  User registerNewUser(IRegistrationRequest pRegistrationRequest) throws UserAlreadyExistsException, BadMailAddressException;
 
-  void requestPasswordRestoreCodeByMail(UserName pUserName, String pMail) throws MailNotMatchingException;
+  void requestPasswordRestoreCodeByMail(IRegistrationRequest pRegistrationData) throws MailNotMatchingException;
 
-  User restorePassword(UserName pUserName, String pRestoreCode) throws UserNotFoundException, BadRestoreCodeException;
+  User restorePassword(IRestoreAuthRequest pRestoreAuthRequest) throws UserNotFoundException, BadRestoreCodeException;
 
   User getAuthenticatedUser();
 }

@@ -1,6 +1,6 @@
 package com.github.simondan.svl.server.behindtheapi;
 
-import com.github.simondan.svl.communication.auth.UserName;
+import com.github.simondan.svl.communication.auth.*;
 import com.github.simondan.svl.communication.utils.SharedUtils;
 import com.github.simondan.svl.server.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.*;
@@ -27,49 +27,57 @@ public class UserService implements IUserService
   private User authenticatedUser;
 
   @Override
-  public User authenticateUser(UserName pUserName, String pPassword) throws BadCredentialsException
+  public User authenticateUser(IAuthenticationRequest pRequest) throws BadCredentialsException
   {
+    final UserName userName = pRequest.getUserName();
+
     final User authenticatedUser = SVL_USERS
-        .findOneByFieldValues(new FieldValueTuple<>(User.NAME, pUserName), new FieldValueTuple<>(User.PASSWORD, pPassword))
-        .orElseThrow(() -> new BadCredentialsException(pUserName));
+        .findOneByFieldValues(new FieldValueTuple<>(User.NAME, userName), new FieldValueTuple<>(User.PASSWORD, pRequest.getPassword()))
+        .orElseThrow(() -> new BadCredentialsException(userName));
 
     authenticatedUser.generateNewPassword();
     return authenticatedUser;
   }
 
   @Override
-  public User registerNewUser(UserName pUserName, String pMail) throws UserAlreadyExistsException, BadMailAddressException
+  public User registerNewUser(IRegistrationRequest pRequest) throws UserAlreadyExistsException, BadMailAddressException
   {
-    if (!SharedUtils.validatePattern(VALID_EMAIL_ADDRESS_REGEX, pMail))
-      throw new BadMailAddressException(pMail + " is not a vail email address!");
+    final UserName userName = pRequest.getUserName();
+    final String mail = pRequest.getMailAddress();
 
-    if (SVL_USERS.findOneByFieldValue(User.NAME, pUserName).isPresent())
-      throw new UserAlreadyExistsException(pUserName);
+    if (!SharedUtils.validatePattern(VALID_EMAIL_ADDRESS_REGEX, mail))
+      throw new BadMailAddressException(mail + " is not a vail email address!");
 
-    if (SVL_USERS.findOneByFieldValue(User.EMAIL, pMail).isPresent())
-      throw new BadMailAddressException("Mail address " + pMail + " has already been used by another user!");
+    if (SVL_USERS.findOneByFieldValue(User.NAME, userName).isPresent())
+      throw new UserAlreadyExistsException(userName);
 
-    return new User(pUserName, pMail);
+    if (SVL_USERS.findOneByFieldValue(User.EMAIL, mail).isPresent())
+      throw new BadMailAddressException("Mail address " + mail + " has already been used by another user!");
+
+    return new User(userName, mail);
   }
 
   @Override
-  public void requestPasswordRestoreCodeByMail(UserName pUserName, String pMail) throws MailNotMatchingException
+  public void requestPasswordRestoreCodeByMail(IRegistrationRequest pRegistrationData) throws MailNotMatchingException
   {
+    final UserName userName = pRegistrationData.getUserName();
+    final String mail = pRegistrationData.getMailAddress();
+
     final User user = SVL_USERS
-        .findOneByFieldValues(new FieldValueTuple<>(User.NAME, pUserName), new FieldValueTuple<>(User.EMAIL, pMail))
-        .orElseThrow(() -> new MailNotMatchingException(pUserName, pMail));
+        .findOneByFieldValues(new FieldValueTuple<>(User.NAME, userName), new FieldValueTuple<>(User.EMAIL, mail))
+        .orElseThrow(() -> new MailNotMatchingException(userName, mail));
 
     user.generateRestoreCode();
     mailSender.sendRestoreCodeMail(user);
   }
 
   @Override
-  public User restorePassword(UserName pUserName, String pRestoreCode) throws UserNotFoundException, BadRestoreCodeException
+  public User restorePassword(IRestoreAuthRequest pRestoreAuthRequest) throws UserNotFoundException, BadRestoreCodeException
   {
-    final User user = SVL_USERS.findOneByFieldValue(User.NAME, pUserName)
-        .orElseThrow(() -> new UserNotFoundException(pUserName));
+    final User user = SVL_USERS.findOneByFieldValue(User.NAME, pRestoreAuthRequest.getUserName())
+        .orElseThrow(() -> new UserNotFoundException(pRestoreAuthRequest.getUserName()));
 
-    user.validateAndResetRestoreCode(pRestoreCode);
+    user.validateAndResetRestoreCode(pRestoreAuthRequest.getRestoreCode());
     return user;
   }
 

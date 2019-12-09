@@ -20,39 +20,33 @@ public final class AuthenticationExternalService
 
   @Path("/auth")
   @POST
-  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response authUser(@FormParam("firstName") String pFirstName, @FormParam("lastName") String pLastName,
-                           @FormParam("password") String pPassword)
+  public Response authUser(IAuthenticationRequest pAuthenticationRequest)
   {
     try
     {
-      final User user = userService.authenticateUser(UserName.of(pFirstName, pLastName), pPassword);
+      final User user = userService.authenticateUser(pAuthenticationRequest);
       return _createAuthResponse(user);
     }
     catch (BadCredentialsException pE)
     {
       return Response.status(Response.Status.UNAUTHORIZED).build();
     }
-    catch (BadUserNameException pE)
-    {
-      return _exceptionResponse(pE);
-    }
   }
 
   @Path("/register")
   @POST
-  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response registerUser(@FormParam("firstName") String pFirstName, @FormParam("lastName") String pLastName,
-                               @FormParam("email") String pEmail)
+  public Response registerUser(IRegistrationRequest pRegistrationRequest)
   {
     try
     {
-      final User user = userService.registerNewUser(UserName.of(pFirstName, pLastName), pEmail);
+      final User user = userService.registerNewUser(pRegistrationRequest);
       return _createAuthResponse(user);
     }
-    catch (BadUserNameException | UserAlreadyExistsException | BadMailAddressException pE)
+    catch (UserAlreadyExistsException | BadMailAddressException pE)
     {
       return _exceptionResponse(pE);
     }
@@ -60,16 +54,15 @@ public final class AuthenticationExternalService
 
   @Path("/requestCode")
   @PUT
-  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  public Response requestRestoreCode(@FormParam("firstName") String pFirstName, @FormParam("lastName") String pLastName,
-                                     @FormParam("email") String pEmail)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response requestRestoreCode(IRegistrationRequest pRegistrationData)
   {
     try
     {
-      userService.requestPasswordRestoreCodeByMail(UserName.of(pFirstName, pLastName), pEmail);
+      userService.requestPasswordRestoreCodeByMail(pRegistrationData);
       return Response.ok().build();
     }
-    catch (BadUserNameException | MailNotMatchingException pE)
+    catch (MailNotMatchingException pE)
     {
       return _exceptionResponse(pE);
     }
@@ -77,17 +70,16 @@ public final class AuthenticationExternalService
 
   @Path("/restore")
   @POST
-  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response restoreUser(@FormParam("firstName") String pFirstName, @FormParam("lastName") String pLastName,
-                              @FormParam("restoreCode") String pRestoreCode)
+  public Response restoreUser(IRestoreAuthRequest pRestoreAuthRequest)
   {
     try
     {
-      final User user = userService.restorePassword(UserName.of(pFirstName, pLastName), pRestoreCode);
+      final User user = userService.restorePassword(pRestoreAuthRequest);
       return _createAuthResponse(user);
     }
-    catch (BadUserNameException | BadRestoreCodeException | UserNotFoundException pE)
+    catch (BadRestoreCodeException | UserNotFoundException pE)
     {
       return _exceptionResponse(pE);
     }
