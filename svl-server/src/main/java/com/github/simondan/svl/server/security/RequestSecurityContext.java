@@ -1,8 +1,8 @@
 package com.github.simondan.svl.server.security;
 
 import com.github.simondan.svl.communication.auth.UserName;
-import org.glassfish.jersey.process.internal.RequestScoped;
 
+import javax.enterprise.context.RequestScoped;
 import java.util.*;
 
 /**

@@ -5,13 +5,14 @@ import com.github.simondan.svl.communication.utils.SharedUtils;
 import com.github.simondan.svl.server.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.*;
 import com.github.simondan.svl.server.security.RequestSecurityContext;
+import de.adito.ojcms.beans.IBeanContainer;
 import de.adito.ojcms.beans.literals.fields.util.FieldValueTuple;
-import org.glassfish.jersey.process.internal.RequestScoped;
+import de.adito.ojcms.transactions.annotations.Transactional;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 import static com.github.simondan.svl.communication.utils.SharedUtils.VALID_EMAIL_ADDRESS_REGEX;
-import static de.adito.ojcms.persistence.OJContainers.SVL_USERS;
 
 /**
  * @author Simon Danner, 30.09.2019
@@ -20,6 +21,8 @@ import static de.adito.ojcms.persistence.OJContainers.SVL_USERS;
 public class UserService implements IUserService
 {
   @Inject
+  private IBeanContainer<User> users;
+  @Inject
   private RequestSecurityContext securityContext;
   @Inject
   private MailSender mailSender;
@@ -27,11 +30,12 @@ public class UserService implements IUserService
   private User authenticatedUser;
 
   @Override
+  @Transactional
   public User authenticateUser(IAuthenticationRequest pRequest) throws BadCredentialsException
   {
     final UserName userName = pRequest.getUserName();
 
-    final User authenticatedUser = SVL_USERS
+    final User authenticatedUser = users
         .findOneByFieldValues(new FieldValueTuple<>(User.NAME, userName), new FieldValueTuple<>(User.PASSWORD, pRequest.getPassword()))
         .orElseThrow(() -> new BadCredentialsException(userName));
 
@@ -40,6 +44,7 @@ public class UserService implements IUserService
   }
 
   @Override
+  @Transactional
   public User registerNewUser(IRegistrationRequest pRequest) throws UserAlreadyExistsException, BadMailAddressException
   {
     final UserName userName = pRequest.getUserName();
@@ -48,22 +53,26 @@ public class UserService implements IUserService
     if (!SharedUtils.validatePattern(VALID_EMAIL_ADDRESS_REGEX, mail))
       throw new BadMailAddressException(mail + " is not a vail email address!");
 
-    if (SVL_USERS.findOneByFieldValue(User.NAME, userName).isPresent())
+    if (users.findOneByFieldValue(User.NAME, userName).isPresent())
       throw new UserAlreadyExistsException(userName);
 
-    if (SVL_USERS.findOneByFieldValue(User.EMAIL, mail).isPresent())
+    if (users.findOneByFieldValue(User.EMAIL, mail).isPresent())
       throw new BadMailAddressException("Mail address " + mail + " has already been used by another user!");
 
-    return new User(userName, mail);
+    final User newUser = new User(userName, mail);
+    users.addBean(newUser);
+
+    return newUser;
   }
 
   @Override
+  @Transactional
   public void requestPasswordRestoreCodeByMail(IRegistrationRequest pRegistrationData) throws MailNotMatchingException
   {
     final UserName userName = pRegistrationData.getUserName();
     final String mail = pRegistrationData.getMailAddress();
 
-    final User user = SVL_USERS
+    final User user = users
         .findOneByFieldValues(new FieldValueTuple<>(User.NAME, userName), new FieldValueTuple<>(User.EMAIL, mail))
         .orElseThrow(() -> new MailNotMatchingException(userName, mail));
 
@@ -72,9 +81,10 @@ public class UserService implements IUserService
   }
 
   @Override
+  @Transactional
   public User restorePassword(IRestoreAuthRequest pRestoreAuthRequest) throws UserNotFoundException, BadRestoreCodeException
   {
-    final User user = SVL_USERS.findOneByFieldValue(User.NAME, pRestoreAuthRequest.getUserName())
+    final User user = users.findOneByFieldValue(User.NAME, pRestoreAuthRequest.getUserName())
         .orElseThrow(() -> new UserNotFoundException(pRestoreAuthRequest.getUserName()));
 
     user.validateAndResetRestoreCode(pRestoreAuthRequest.getRestoreCode());
@@ -86,7 +96,7 @@ public class UserService implements IUserService
   {
     if (authenticatedUser == null)
       authenticatedUser = securityContext.getAuthenticatedUserName()
-          .flatMap(authUserName -> SVL_USERS.findOneByFieldValue(User.NAME, authUserName))
+          .flatMap(authUserName -> users.findOneByFieldValue(User.NAME, authUserName))
           .orElseThrow(NoAuthenticatedUserException::new);
 
     return authenticatedUser;

@@ -7,7 +7,6 @@ import de.adito.ojcms.beans.*;
 import de.adito.ojcms.beans.annotations.*;
 import de.adito.ojcms.beans.literals.fields.types.*;
 import de.adito.ojcms.persistence.Persist;
-import de.adito.ojcms.persistence.util.EStorageMode;
 
 import java.time.*;
 import java.util.Objects;
@@ -17,7 +16,7 @@ import static com.github.simondan.svl.communication.utils.SharedUtils.*;
 /**
  * @author Simon Danner, 20.09.2019
  */
-@Persist(containerId = "SVL_USERS", storageMode = EStorageMode.AUTOMATIC)
+@Persist(containerId = "SVL_USERS")
 public class User extends OJBean<User>
 {
   @Identifier

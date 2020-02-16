@@ -5,7 +5,8 @@ import com.github.simondan.svl.server.auth.User;
 import org.simplejavamail.email.*;
 import org.simplejavamail.mailer.MailerBuilder;
 
-import javax.inject.*;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.util.logging.*;
 
 import static com.github.simondan.svl.communication.utils.SharedUtils.RESTORE_CODE_EXPIRATION_THRESHOLD;
@@ -13,7 +14,7 @@ import static com.github.simondan.svl.communication.utils.SharedUtils.RESTORE_CO
 /**
  * @author Simon Danner, 23.11.2019
  */
-@Singleton
+@ApplicationScoped
 public class MailSender
 {
   private static final Logger LOGGER = Logger.getLogger(MailSender.class.getName());

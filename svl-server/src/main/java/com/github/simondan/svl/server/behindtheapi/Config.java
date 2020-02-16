@@ -1,13 +1,13 @@
 package com.github.simondan.svl.server.behindtheapi;
 
-import javax.inject.Singleton;
+import javax.enterprise.context.ApplicationScoped;
 import java.io.*;
 import java.util.Properties;
 
 /**
  * @author Simon Danner, 30.11.2019
  */
-@Singleton
+@ApplicationScoped
 public class Config
 {
   private static final String CONFIG_PATH = "server.properties";

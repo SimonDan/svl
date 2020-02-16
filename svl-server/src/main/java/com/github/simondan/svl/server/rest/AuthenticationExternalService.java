@@ -5,6 +5,7 @@ import com.github.simondan.svl.server.auth.*;
 import com.github.simondan.svl.server.auth.exceptions.*;
 import com.github.simondan.svl.server.security.JWTUtil;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -13,7 +14,8 @@ import javax.ws.rs.core.*;
  * @author Simon Danner, 22.09.2019
  */
 @Path("/authentication")
-public final class AuthenticationExternalService
+@ApplicationScoped
+public class AuthenticationExternalService
 {
   @Inject
   private IUserService userService;

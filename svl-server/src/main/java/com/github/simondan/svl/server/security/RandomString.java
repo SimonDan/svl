@@ -6,13 +6,17 @@ import java.util.*;
 /**
  * @author Simon Danner, 07.12.2019
  */
-public class RandomString
+public final class RandomString
 {
   private static final String UPPER_ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final String LOWER_ABC = UPPER_ABC.toLowerCase(Locale.ROOT);
   private static final String DIGITS = "0123456789";
   private static final char[] ABC = (UPPER_ABC + LOWER_ABC + DIGITS).toCharArray();
   private static final Random RANDOM = new SecureRandom();
+
+  private RandomString()
+  {
+  }
 
   public static String generate(int pLength)
   {
